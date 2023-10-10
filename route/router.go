@@ -53,9 +53,10 @@ type Router struct {
 	quicSniffCache sync.Map
 
 	defaultDomainMatchStrategy C.DomainMatchStrategy
+	reloadChan                 chan<- struct{}
 }
 
-func NewRouter(ctx context.Context, logFactory log.Factory, options option.RouteOptions, dnsOptions option.DNSOptions) *Router {
+func NewRouter(ctx context.Context, logFactory log.Factory, options option.RouteOptions, dnsOptions option.DNSOptions, reloadChan chan<- struct{}) *Router {
 	return &Router{
 		ctx:               ctx,
 		logger:            logFactory.NewLogger("router"),
@@ -75,6 +76,7 @@ func NewRouter(ctx context.Context, logFactory log.Factory, options option.Route
 		platformInterface: service.FromContext[adapter.PlatformInterface](ctx),
 
 		defaultDomainMatchStrategy: C.DomainMatchStrategy(options.DefaultDomainMatchStrategy),
+		reloadChan:                 reloadChan,
 	}
 }
 
@@ -330,4 +332,13 @@ func (r *Router) lookupQUICSniff(source, destination M.Socksaddr) (string, bool)
 
 func (r *Router) DefaultDomainMatchStrategy() C.DomainMatchStrategy {
 	return r.defaultDomainMatchStrategy
+}
+
+func (r *Router) Reload() {
+	if r.platformInterface == nil {
+		select {
+		case r.reloadChan <- struct{}{}:
+		default:
+		}
+	}
 }
