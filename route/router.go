@@ -51,6 +51,8 @@ type Router struct {
 	started           bool
 
 	quicSniffCache sync.Map
+
+	defaultDomainMatchStrategy C.DomainMatchStrategy
 }
 
 func NewRouter(ctx context.Context, logFactory log.Factory, options option.RouteOptions, dnsOptions option.DNSOptions) *Router {
@@ -71,10 +73,15 @@ func NewRouter(ctx context.Context, logFactory log.Factory, options option.Route
 		leaseFiles:        options.DHCPLeaseFiles,
 		pauseManager:      service.FromContext[pause.Manager](ctx),
 		platformInterface: service.FromContext[adapter.PlatformInterface](ctx),
+
+		defaultDomainMatchStrategy: C.DomainMatchStrategy(options.DefaultDomainMatchStrategy),
 	}
 }
 
 func (r *Router) Initialize(rules []option.Rule, ruleSets []option.RuleSet) error {
+	if r.defaultDomainMatchStrategy == C.DomainMatchStrategyFQDNOnly || r.defaultDomainMatchStrategy == C.DomainMatchStrategySniffHostOnly {
+		return E.New("default_domain_match_strategy cannot be fqdn_only or sniffhost_only")
+	}
 	for i, options := range rules {
 		err := R.ValidateNoNestedRuleActions(options)
 		if err != nil {
@@ -319,4 +326,8 @@ func (r *Router) lookupQUICSniff(source, destination M.Socksaddr) (string, bool)
 		return "", false
 	}
 	return entry.sniffHost, true
+}
+
+func (r *Router) DefaultDomainMatchStrategy() C.DomainMatchStrategy {
+	return r.defaultDomainMatchStrategy
 }
