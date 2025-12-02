@@ -56,6 +56,7 @@ type dnsMsg struct {
 	ipv6Index  int32
 	msg        *dns.Msg
 	expireTime time.Time
+	lazyCache  bool
 }
 
 func (dm *dnsMsg) RoundRobin() *dns.Msg {
@@ -443,7 +444,7 @@ func (c *Client) Exchange(ctx context.Context, transport adapter.DNSTransport, m
 		}
 	}
 	if !disableCache {
-		c.storeCache(transport, question, response, timeToLive)
+		c.storeCache(transport, question, response, timeToLive, options.LazyCacheTTL)
 	}
 	response.Id = messageId
 	requestEDNSOpt := message.IsEdns0()
@@ -519,7 +520,7 @@ func sortAddresses(response4 []netip.Addr, response6 []netip.Addr, strategy C.Do
 	}
 }
 
-func (c *Client) storeCache(transport adapter.DNSTransport, question dns.Question, message *dns.Msg, timeToLive uint32) {
+func (c *Client) storeCache(transport adapter.DNSTransport, question dns.Question, message *dns.Msg, timeToLive uint32, lazyCacheTTL *uint32) {
 	if timeToLive == 0 {
 		return
 	}
@@ -536,7 +537,13 @@ func (c *Client) storeCache(transport adapter.DNSTransport, question dns.Questio
 		pdnsMsg := &dnsMsg{msg: message}
 		lifetime := time.Second * time.Duration(timeToLive)
 		pdnsMsg.expireTime = time.Now().Add(lifetime)
-		if c.useLazyCache {
+		if lazyCacheTTL != nil {
+			if *lazyCacheTTL > 0 {
+				pdnsMsg.lazyCache = true
+				lifetime = lifetime + (time.Second * time.Duration(*lazyCacheTTL))
+			}
+		} else if c.useLazyCache {
+			pdnsMsg.lazyCache = true
 			lifetime = lifetime + time.Second*time.Duration(c.lazyCacheTTL)
 		}
 		if !c.independentCache {
@@ -646,7 +653,7 @@ func (c *Client) loadResponse(question dns.Question, transport adapter.DNSTransp
 			}
 			return nil, 0, false
 		}
-		stale := c.useLazyCache && !resp.expireTime.IsZero() && timeNow.After(resp.expireTime)
+		stale := resp.lazyCache && !resp.expireTime.IsZero() && timeNow.After(resp.expireTime)
 		response = c.getRoundRobin(resp)
 		var originTTL int
 		for _, recordList := range [][]dns.RR{response.Answer, response.Ns, response.Extra} {
