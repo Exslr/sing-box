@@ -167,6 +167,8 @@ github.com/prometheus-community/pro-bing v0.4.0 h1:YMbv+i08gQz97OZZBwLyvmmQEEzyf
 github.com/prometheus-community/pro-bing v0.4.0/go.mod h1:b7wRYZtCcPmt4Sz319BykUU241rWLe1VFXyiyWK/dH4=
 github.com/quic-go/qpack v0.6.0 h1:g7W+BMYynC1LbYLSqRt8PBg5Tgwxn214ZZR34VIOjz8=
 github.com/quic-go/qpack v0.6.0/go.mod h1:lUpLKChi8njB4ty2bFLX2x4gzDqXwUpaO1DP9qMDZII=
+github.com/reF1nd/sing-snell v0.0.6 h1:76Y5zdXshNcKxcYoNxgxOpeYD01xLyBoi6k2dRyWSLU=
+github.com/reF1nd/sing-snell v0.0.6/go.mod h1:9GeHBibP7RGZFoj4lgen8Tp5MbfOezw8nYeL6GHS/XA=
 github.com/reF1nd/sing-tun v0.8.11-0.20260611083528-01ade7811f2c h1:7XbTrEUUSb9sH1YkBNgkBeNB0V7BDoVww8rqr1oVP60=
 github.com/reF1nd/sing-tun v0.8.11-0.20260611083528-01ade7811f2c/go.mod h1:QvarqUtHfj1ULaRR+6kZOS/OoCE+pYGq67A5tyIy+dQ=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
