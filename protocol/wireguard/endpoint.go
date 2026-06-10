@@ -22,7 +22,10 @@ import (
 	"github.com/sagernet/sing/service"
 )
 
-var _ dialer.PacketDialerWithDestination = (*Endpoint)(nil)
+var (
+	_ dialer.PacketDialerWithDestination = (*Endpoint)(nil)
+	_ adapter.InterfaceUpdateListener    = (*Endpoint)(nil)
+)
 
 func RegisterEndpoint(registry *endpoint.Registry) {
 	endpoint.Register[option.WireGuardEndpointOptions](registry, C.TypeWireGuard, NewEndpoint)
@@ -135,6 +138,13 @@ func (w *Endpoint) Start(stage adapter.StartStage) error {
 
 func (w *Endpoint) Close() error {
 	return w.endpoint.Close()
+}
+
+func (w *Endpoint) InterfaceUpdated() {
+	err := w.endpoint.BindUpdate()
+	if err != nil && !E.IsClosed(err) {
+		w.logger.Warn(E.Cause(err, "update WireGuard bind"))
+	}
 }
 
 func (w *Endpoint) PrepareConnection(network string, source M.Socksaddr, destination M.Socksaddr) error {

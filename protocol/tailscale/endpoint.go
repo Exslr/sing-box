@@ -52,7 +52,10 @@ import (
 	"github.com/sagernet/tailscale/wgengine/filter"
 )
 
-var _ dialer.PacketDialerWithDestination = (*Endpoint)(nil)
+var (
+	_ dialer.PacketDialerWithDestination = (*Endpoint)(nil)
+	_ adapter.InterfaceUpdateListener    = (*Endpoint)(nil)
+)
 
 func init() {
 	version.SetVersion("sing-box " + C.Version)
@@ -329,6 +332,14 @@ func (t *Endpoint) watchState() {
 			return false
 		})
 	}
+}
+
+func (t *Endpoint) InterfaceUpdated() {
+	localBackend := t.server.ExportLocalBackend()
+	if localBackend == nil {
+		return
+	}
+	localBackend.NetMon().InjectEvent()
 }
 
 func (t *Endpoint) Close() error {
