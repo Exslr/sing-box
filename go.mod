@@ -70,6 +70,8 @@ require (
 	howett.net/plist v1.0.1
 )
 
+replace github.com/sagernet/sing-tun => github.com/reF1nd/sing-tun v0.8.11-0.20260611083528-01ade7811f2c
+
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
